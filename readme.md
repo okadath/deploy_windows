@@ -81,17 +81,110 @@ RewriteCond %{HTTPS} on
 RewriteCond %{REQUEST_URI} !(\.png|\.css|\.jpg|\.pdf)$ [NC]
 RewriteRule (.*) http://%{HTTP_HOST}%{REQUEST_URI}
 
-con eso y en el httpd.conf
+# necesarios!
 
+esperar a loguearse la primera vez que creamos la maquina virtual en aws, pide minimo 30gb de disco, agregar en inbound rules las reglas para rdp, http y https,agregar la ip elastica al server y asignarle la maquina, 
+
+con eso y en el httpd.conf:
+```
 <Directory />
 	Options Indexes FollowSymLinks
     AllowOverride All
     Require all granted
 </Directory>
+```
+
+instalar certificados con cerbot 
+hay que apagar el server 
+
+eso nos los dejara en `C:\Certbot\archive\pruebasdosha.com` como muchos .pem
+https://certbot.eff.org/lets-encrypt/windows-apache.html
+
+el programa nos los deja en links de sistema, pero viven en la carpeta que indique arriba
 
 
+y esos archivos se copiaran en las carpetas conf/, conf/ssl.crt, conf/ssl.csr y conf/ssl.key para poder substituir facilmente en el `httpd-ssl.conf`, hay que agregar los tres archivos cert1, privkey1 chain1 .pem y el dominio
 
+
+``` config
+<VirtualHost _default_:443>
+
+#   General setup for the virtual host
+DocumentRoot "C:/xampp/htdocs"
+##ServerName www.example.com:443
+##ServerAdmin admin@example.com
+ServerName pruebasdosha.com:443
+ServerAdmin admin@example.com
+
+ErrorLog "C:/xampp/apache/logs/error.log"
+TransferLog "C:/xampp/apache/logs/access.log"
+
+#   SSL Engine Switch:
+#   Enable/Disable SSL for this virtual host.
+SSLEngine on
+
+#   Server Certificate:
+#   Point SSLCertificateFile "conf/ssl.crt/server.crt"
+#   the certificate is encrypted, then you will be prompted for a
+#   pass phrase.  Note that a kill -HUP will prompt again.  Keep
+#   in mind that if you have both an RSA and a DSA certificate you
+#   can configure both in parallel (to also allow the use of DSA
+#   ciphers, etc.)
+#   Some ECC cipher suites (http://www.ietf.org/rfc/rfc4492.txt)
+#   require an ECC certificate which can also be configured in
+#   parallel.
+
+SSLCertificateFile "conf/ssl.crt/cert1.pem"
+##SSLCertificateFile "conf/ssl.crt/server.crt"
+#SSLCertificateFile "conf/ssl.crt/server.crt"
+#SSLCertificateFile "conf/ssl.crt/server.crt"
+
+#   Server Private Key:
+#   If the key is not combined with the certificate, use this
+#   directive to point at the key file.  Keep in mind that if
+#   you've both a RSA and a DSA private key you can configure
+#   both in parallel (to also allow the use of DSA ciphers, etc.)
+#   ECC keys, when in use, can also be configured in parallel
+SSLCertificateKeyFile "conf/ssl.key/privkey1.pem"
+##SSLCertificateKeyFile "conf/ssl.key/server.key"
+#SSLCertificateKeyFile "conf/ssl.key/server.key"
+#SSLCertificateKeyFile "conf/ssl.key/server.key"
+
+#   Server Certificate Chain:
+#   Point SSLCertificateChainFile at a file containing the
+#   concatenation of PEM encoded CA certificates which form the
+#   certificate chain for the server certificate. Alternatively
+#   the referenced file can be the same as SSLCertificateFile "conf/ssl.crt/server.crt"
+#   certificate for convenience.
+#SSLCertificateChainFile "${SRVROOT}/conf/server-ca.crt"
+SSLCertificateChainFile "${SRVROOT}/conf/chain1.pem"
+
+...
+```
+
+y agregar hasta abajo del `httpd-xampp.conf` las configuraciones y los dominios:
+
+```conf
+ <VirtualHost *:80>
+     DocumentRoot "C:/xampp/htdocs"
+     ServerName pruebasdosha.com
+     ServerAlias *.pruebasdosha.com
+ </VirtualHost>
+ <VirtualHost *:443>
+     DocumentRoot "C:/xampp/htdocs"
+     ServerName pruebasdosha.com
+     ServerAlias *.pruebasdosha.com
+     SSLEngine on
+     SSLCertificateFile "conf/ssl.crt/cert1.pem"
+     SSLCertificateKeyFile "conf/ssl.key/privkey1.pem"
+SSLCertificateChainFile "${SRVROOT}/conf/chain1.pem"
+ </VirtualHost>
+```
+
+
+### old:
 en el archivo de config de apache sustituir las keys y los archivos del pem (no recuerdo si este ya los trae o no)
+``` 
 #
 # This is the Apache server configuration file providing SSL support.
 # It contains the configuration directives to instruct the server how to
@@ -394,3 +487,4 @@ Alias /.well-known "C:/xampp/htdocs/.well-known"
 </VirtualHost>                                  
 
 
+```
