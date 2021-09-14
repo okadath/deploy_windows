@@ -104,7 +104,7 @@ el programa nos los deja en links de sistema, pero viven en la carpeta que indiq
 
 
 y esos archivos se copiaran en las carpetas conf/, conf/ssl.crt, conf/ssl.csr y conf/ssl.key para poder substituir facilmente en el `httpd-ssl.conf`, hay que agregar los tres archivos cert1, privkey1 chain1 .pem y el dominio
-
+(se indica como aqui https://rasyue.medium.com/how-to-use-certbot-on-windows-machine-to-generate-ssl-certificate-for-your-apache-webserver-cf2dc7c2dc72 )
 
 ``` config
 <VirtualHost _default_:443>
@@ -180,7 +180,10 @@ y agregar hasta abajo del `httpd-xampp.conf` las configuraciones y los dominios:
 SSLCertificateChainFile "${SRVROOT}/conf/chain1.pem"
  </VirtualHost>
 ```
-
+ no se si sea forzoso agrega a `C:\Windows\System32\drivers\etc\hosts`:
+ ```
+127.0.0.1 pruebasdosha.com
+```
 
 ### old:
 en el archivo de config de apache sustituir las keys y los archivos del pem (no recuerdo si este ya los trae o no)
